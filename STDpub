@@ -1,147 +1,275 @@
-local R=loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local RS=game:GetService("ReplicatedStorage")
-local Rem=RS:WaitForChild("Remotes")
-local Pl=game:GetService("Players").LocalPlayer
-local stats={runs=0,rewards=0,summons=0,start=tick()}
-local flags={farm=false,skipwave=false,claimwave=false,daily=false,bp=false,gifts=false,bounties=false,frags=false,summon=false}
-local crateType="Standard"
-local summonAmt=1
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local RS = game:GetService("ReplicatedStorage")
+local TS = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Rem = RS:WaitForChild("Remotes")
 
-local function fr(p,...) local r=Rem for _,k in ipairs(p) do r=r:FindFirstChild(k) if not r then return end end pcall(function() r:FireServer(...) end) end
-local function ir(p,...) local r=Rem for _,k in ipairs(p) do r=r:FindFirstChild(k) if not r then return end end local ok,res=pcall(function() return r:InvokeServer(...) end) return ok and res or nil end
-local function n(t,c,d) R:Notify({Title=t,Content=c,Duration=d or 2,Image=4483362458}) end
-local function loop(flag,fn,delay) spawn(function() while flags[flag] do fn() wait(delay) end end) end
+local flags = {farm=false,skipwave=false,claimwave=false,daily=false,bp=false,gifts=false,bounties=false,frags=false,summon=false}
+local crateType = "Standard"
+local summonAmt = 1
+local stats = {runs=0,rewards=0,summons=0,start=tick()}
 
-local W=R:CreateWindow({Name="Sorcerer TD | Premium Hub",LoadingTitle="Sorcerer TD v2.0",LoadingSubtitle="Loading...",ConfigurationSaving={Enabled=true,FolderName="SorcererTD",FileName="Config"},Discord={Enabled=false},KeySystem=false})
-local HT=W:CreateTab("Home",4483362458)
-local FT=W:CreateTab("Auto Farm",4483362458)
-local ST=W:CreateTab("Summon",4483362458)
-local CT=W:CreateTab("Auto Claim",4483362458)
-local TT=W:CreateTab("Tower Manager",4483362458)
-local ET=W:CreateTab("Events",4483362458)
-local TP=W:CreateTab("Teleports",4483362458)
-local SS=W:CreateTab("Statistics",4483362458)
-local MT=W:CreateTab("Misc",4483362458)
+local function fr(t, ...)
+    local r = Rem
+    for _, k in ipairs(t) do
+        r = r:FindFirstChild(k)
+        if not r then return end
+    end
+    pcall(function() r:FireServer(...) end)
+end
+
+local function ir(t, ...)
+    local r = Rem
+    for _, k in ipairs(t) do
+        r = r:FindFirstChild(k)
+        if not r then return end
+    end
+    local ok, res = pcall(function() return r:InvokeServer(...) end)
+    return ok and res or nil
+end
+
+local function n(title, content, dur)
+    Rayfield:Notify({Title=title, Content=content, Duration=dur or 2, Image=4483362458})
+end
+
+local function loop(flag, fn, delay)
+    spawn(function()
+        while flags[flag] do fn() wait(delay) end
+    end)
+end
+
+local W = Rayfield:CreateWindow({
+    Name = "Sorcerer TD | Premium Hub",
+    LoadingTitle = "Sorcerer TD v2.0",
+    LoadingSubtitle = "Loading features...",
+    ConfigurationSaving = {Enabled=true, FolderName="SorcererTD", FileName="Config"},
+    Discord = {Enabled=false},
+    KeySystem = false
+})
+
+local HT = W:CreateTab("Home",          4483362458)
+local FT = W:CreateTab("Auto Farm",     4483362458)
+local ST = W:CreateTab("Summon",        4483362458)
+local CT = W:CreateTab("Auto Claim",    4483362458)
+local TT = W:CreateTab("Tower Manager", 4483362458)
+local ET = W:CreateTab("Events",        4483362458)
+local TP = W:CreateTab("Teleports",     4483362458)
+local SS = W:CreateTab("Statistics",    4483362458)
+local MT = W:CreateTab("Misc",          4483362458)
 
 -- HOME
 HT:CreateSection("Quick Actions")
-HT:CreateButton({Name="Enable All Auto Features",Callback=function() for k in pairs(flags) do flags[k]=true end n("Auto","All features ON!") loop("daily",function() fr({"Daily","ClaimDaily"}) end,60) loop("bp",function() fr({"Battlepass","ClaimBattlepass"}) end,30) loop("gifts",function() ir({"ClaimGift"}) end,120) loop("bounties",function() fr({"Disaster","ClaimBounties"}) fr({"Disaster","UpdateBountyClaim"}) end,45) loop("frags",function() fr({"Disaster","UpdateFragments"}) end,60) end})
-HT:CreateButton({Name="Disable All Auto Features",Callback=function() for k in pairs(flags) do flags[k]=false end n("Auto","All features OFF!") end})
-HT:CreateSection("Status") local SL=HT:CreateLabel("Farm: OFF | Claim: OFF | Summon: OFF")
-spawn(function() while wait(2) do SL:Set("Farm: "..(flags.farm and"ON"or"OFF").." | Claim: "..(flags.daily and"ON"or"OFF").." | Summon: "..(flags.summon and"ON"or"OFF")) end end)
+HT:CreateButton({Name="Enable All Auto Features", Callback=function()
+    for k in pairs(flags) do flags[k] = true end
+    n("Auto", "All features enabled!")
+    loop("daily",   function() fr({"Daily","ClaimDaily"}) end, 60)
+    loop("bp",      function() fr({"Battlepass","ClaimBattlepass"}) end, 30)
+    loop("gifts",   function() ir({"ClaimGift"}) end, 120)
+    loop("bounties",function() fr({"Disaster","ClaimBounties"}) fr({"Disaster","UpdateBountyClaim"}) end, 45)
+    loop("frags",   function() fr({"Disaster","UpdateFragments"}) end, 60)
+end})
+HT:CreateButton({Name="Disable All Auto Features", Callback=function()
+    for k in pairs(flags) do flags[k] = false end
+    n("Auto", "All features disabled!")
+end})
+HT:CreateSection("Status")
+local SL = HT:CreateLabel("Farm: OFF | Claim: OFF | Summon: OFF")
+spawn(function()
+    while wait(2) do
+        SL:Set("Farm: "..(flags.farm and "ON" or "OFF").." | Claim: "..(flags.daily and "ON" or "OFF").." | Summon: "..(flags.summon and "ON" or "OFF"))
+    end
+end)
 
 -- AUTO FARM
-FT:CreateSection("Auto Farm")
-FT:CreateToggle({Name="Auto Start Game",CurrentValue=false,Flag="AutoFarm",Callback=function(v) flags.farm=v n("Farm",v and"Farm ON!"or"Farm OFF!") end})
-FT:CreateToggle({Name="Auto Skip Waves",CurrentValue=false,Flag="AutoSkip",Callback=function(v) flags.skipwave=v if v then loop("skipwave",function() fr({"Events","WaveEvent"}) end,2) end end})
-FT:CreateToggle({Name="Auto Claim Wave Rewards",CurrentValue=false,Flag="AutoClaim",Callback=function(v) flags.claimwave=v if v then loop("claimwave",function() fr({"Events","RewardEvent"}) stats.rewards=stats.rewards+1 end,3) end end})
+FT:CreateSection("Auto Farm Toggles")
+FT:CreateToggle({Name="Auto Start Game", CurrentValue=false, Flag="AutoFarm", Callback=function(v) flags.farm=v n("Farm", v and "Farm ON!" or "Farm OFF!") end})
+FT:CreateToggle({Name="Auto Skip Waves", CurrentValue=false, Flag="AutoSkip", Callback=function(v)
+    flags.skipwave = v
+    if v then loop("skipwave", function() fr({"Events","WaveEvent"}) end, 2) end
+end})
+FT:CreateToggle({Name="Auto Claim Wave Rewards", CurrentValue=false, Flag="AutoClaimWave", Callback=function(v)
+    flags.claimwave = v
+    if v then loop("claimwave", function() fr({"Events","RewardEvent"}) stats.rewards=stats.rewards+1 end, 3) end
+end})
 FT:CreateSection("Manual Controls")
-FT:CreateButton({Name="Skip Wave",Callback=function() fr({"Events","WaveEvent"}) n("Wave","Skipped!") end})
-FT:CreateButton({Name="Claim Wave Rewards",Callback=function() fr({"Events","RewardEvent"}) stats.rewards=stats.rewards+1 n("Rewards","Claimed!") end})
+FT:CreateButton({Name="Skip Wave", Callback=function() fr({"Events","WaveEvent"}) n("Wave","Skipped!") end})
+FT:CreateButton({Name="Claim Wave Rewards", Callback=function() fr({"Events","RewardEvent"}) stats.rewards=stats.rewards+1 n("Rewards","Claimed!") end})
 FT:CreateSection("Challenge Mode")
-FT:CreateButton({Name="Host Challenge",Callback=function() fr({"ChallengeTeleporters","Host"}) n("Challenge","Hosted!") end})
-FT:CreateButton({Name="Start Challenge",Callback=function() fr({"ChallengeTeleporters","Start"}) stats.runs=stats.runs+1 n("Challenge","Started!") end})
-FT:CreateButton({Name="Leave Challenge",Callback=function() fr({"ChallengeTeleporters","Leave"}) n("Challenge","Left!") end})
-FT:CreateButton({Name="Buy Ticket",Callback=function() fr({"ChallengeTeleporters","BuyTicket"}) n("Ticket","Bought!") end})
-FT:CreateButton({Name="Claim Endless Rewards",Callback=function() ir({"ClaimEndless"}) n("Endless","Claimed!") end})
+FT:CreateButton({Name="Host Challenge",  Callback=function() fr({"ChallengeTeleporters","Host"})      n("Challenge","Hosted!")  end})
+FT:CreateButton({Name="Start Challenge", Callback=function() fr({"ChallengeTeleporters","Start"})     stats.runs=stats.runs+1 n("Challenge","Started!") end})
+FT:CreateButton({Name="Leave Challenge", Callback=function() fr({"ChallengeTeleporters","Leave"})     n("Challenge","Left!")    end})
+FT:CreateButton({Name="Buy Ticket",      Callback=function() fr({"ChallengeTeleporters","BuyTicket"}) n("Ticket","Bought!")     end})
+FT:CreateButton({Name="Claim Endless Rewards", Callback=function() ir({"ClaimEndless"}) n("Endless","Claimed!") end})
 
 -- SUMMON
-ST:CreateSection("Crate Summoning")
-ST:CreateDropdown({Name="Crate Type",Options={"Standard","Premium","Exclusive","Event","Special","Limited"},CurrentOption="Standard",Flag="CrateType",Callback=function(v) crateType=v n("Crate","Selected: "..v) end})
-ST:CreateSlider({Name="Summon Amount",Range={1,100},Increment=1,CurrentValue=1,Flag="SummonAmt",Callback=function(v) summonAmt=v end})
-ST:CreateButton({Name="Summon Now",Callback=function() local r=Rem:FindFirstChild("Crates")and Rem.Crates:FindFirstChild("Summon") if r then for i=1,summonAmt do pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) wait(0.1) end n("Summon",summonAmt.." summons done!") end end})
-ST:CreateToggle({Name="Auto Summon",CurrentValue=false,Flag="AutoSummon",Callback=function(v) flags.summon=v n("Summon",v and"Auto ON!"or"Auto OFF!") if v then loop("summon",function() local r=Rem:FindFirstChild("Crates")and Rem.Crates:FindFirstChild("Summon") if r then pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) end end,1.5) end end})
-ST:CreateToggle({Name="Auto Sell Units",CurrentValue=false,Flag="AutoSell",Callback=function(v) fr({"Crates","Autosell"},v) n("Sell",v and"Auto sell ON!"or"Auto sell OFF!") end})
+ST:CreateSection("Crate Settings")
+ST:CreateDropdown({Name="Crate Type", Options={"Standard","Premium","Exclusive","Event","Special","Limited"}, CurrentOption="Standard", Flag="CrateType", Callback=function(v) crateType=v n("Crate","Selected: "..v) end})
+ST:CreateSlider({Name="Summon Amount", Range={1,100}, Increment=1, CurrentValue=1, Flag="SummonAmt", Callback=function(v) summonAmt=v end})
+ST:CreateButton({Name="Summon Now", Callback=function()
+    local r = Rem:FindFirstChild("Crates") and Rem.Crates:FindFirstChild("Summon")
+    if r then
+        for i = 1, summonAmt do pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) wait(0.1) end
+        n("Summon", summonAmt.." summons done!")
+    else n("Error","Summon remote not found!") end
+end})
+ST:CreateToggle({Name="Auto Summon", CurrentValue=false, Flag="AutoSummon", Callback=function(v)
+    flags.summon = v
+    n("Summon", v and "Auto summon ON!" or "Auto summon OFF!")
+    if v then loop("summon", function()
+        local r = Rem:FindFirstChild("Crates") and Rem.Crates:FindFirstChild("Summon")
+        if r then pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) end
+    end, 1.5) end
+end})
+ST:CreateToggle({Name="Auto Sell Units", CurrentValue=false, Flag="AutoSell", Callback=function(v) fr({"Crates","Autosell"},v) n("Sell", v and "ON!" or "OFF!") end})
 ST:CreateSection("Quick Summon")
-ST:CreateButton({Name="Mass Summon x100",Callback=function() local r=Rem:FindFirstChild("Crates")and Rem.Crates:FindFirstChild("Summon") if r then for i=1,100 do pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) wait(0.05) end n("Mass Summon","100 done!") end end})
-ST:CreateButton({Name="Quick Summon x10",Callback=function() local r=Rem:FindFirstChild("Crates")and Rem.Crates:FindFirstChild("Summon") if r then for i=1,10 do pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) wait(0.1) end n("Quick Summon","10 done!") end end})
-ST:CreateButton({Name="Buy Crate",Callback=function() fr({"Crates","BuyCrate"},crateType) n("Buy","Bought "..crateType.."!") end})
-ST:CreateButton({Name="Open Crate",Callback=function() fr({"Crates","OpenCrate"},crateType) n("Open","Opened "..crateType.."!") end})
-ST:CreateButton({Name="Display Tower Preview",Callback=function() fr({"Crates","DisplayTower"}) n("Preview","Displayed!") end})
+ST:CreateButton({Name="Mass Summon x100", Callback=function()
+    local r = Rem:FindFirstChild("Crates") and Rem.Crates:FindFirstChild("Summon")
+    if r then for i=1,100 do pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) wait(0.05) end n("Mass Summon","100 done!") end
+end})
+ST:CreateButton({Name="Quick Summon x10", Callback=function()
+    local r = Rem:FindFirstChild("Crates") and Rem.Crates:FindFirstChild("Summon")
+    if r then for i=1,10 do pcall(function() r:InvokeServer(crateType) stats.summons=stats.summons+1 end) wait(0.1) end n("Quick Summon","10 done!") end
+end})
+ST:CreateButton({Name="Buy Crate",            Callback=function() fr({"Crates","BuyCrate"},crateType)   n("Buy","Bought "..crateType.."!")   end})
+ST:CreateButton({Name="Open Crate",           Callback=function() fr({"Crates","OpenCrate"},crateType)  n("Open","Opened "..crateType.."!")  end})
+ST:CreateButton({Name="Display Tower Preview",Callback=function() fr({"Crates","DisplayTower"})         n("Preview","Displayed!")            end})
 
 -- AUTO CLAIM
 CT:CreateSection("Daily")
-CT:CreateToggle({Name="Auto Claim Daily",CurrentValue=false,Flag="AutoDaily",Callback=function(v) flags.daily=v n("Daily",v and"Auto ON!"or"Auto OFF!") if v then loop("daily",function() fr({"Daily","ClaimDaily"}) end,60) end end})
-CT:CreateButton({Name="Claim Daily",Callback=function() fr({"Daily","ClaimDaily"}) n("Daily","Claimed!") end})
-CT:CreateButton({Name="Refresh Daily",Callback=function() fr({"Daily","RefreshDaily"}) n("Daily","Refreshed!") end})
+CT:CreateToggle({Name="Auto Claim Daily", CurrentValue=false, Flag="AutoDaily", Callback=function(v)
+    flags.daily = v
+    n("Daily", v and "Auto daily ON!" or "Auto daily OFF!")
+    if v then loop("daily", function() fr({"Daily","ClaimDaily"}) end, 60) end
+end})
+CT:CreateButton({Name="Claim Daily",   Callback=function() fr({"Daily","ClaimDaily"})  n("Daily","Claimed!")  end})
+CT:CreateButton({Name="Refresh Daily", Callback=function() fr({"Daily","RefreshDaily"}) n("Daily","Refreshed!") end})
 CT:CreateSection("Battlepass")
-CT:CreateToggle({Name="Auto Claim Battlepass",CurrentValue=false,Flag="AutoBP",Callback=function(v) flags.bp=v n("BP",v and"Auto ON!"or"Auto OFF!") if v then loop("bp",function() fr({"Battlepass","ClaimBattlepass"}) end,30) end end})
-CT:CreateButton({Name="Claim Battlepass",Callback=function() fr({"Battlepass","ClaimBattlepass"}) n("BP","Claimed!") end})
+CT:CreateToggle({Name="Auto Claim Battlepass", CurrentValue=false, Flag="AutoBP", Callback=function(v)
+    flags.bp = v
+    n("BP", v and "Auto BP ON!" or "Auto BP OFF!")
+    if v then loop("bp", function() fr({"Battlepass","ClaimBattlepass"}) end, 30) end
+end})
+CT:CreateButton({Name="Claim Battlepass", Callback=function() fr({"Battlepass","ClaimBattlepass"}) n("BP","Claimed!") end})
 CT:CreateSection("Time Gifts")
-CT:CreateToggle({Name="Auto Claim Time Gifts",CurrentValue=false,Flag="AutoGifts",Callback=function(v) flags.gifts=v n("Gifts",v and"Auto ON!"or"Auto OFF!") if v then loop("gifts",function() ir({"ClaimGift"}) end,120) end end})
-CT:CreateButton({Name="Claim Time Gift",Callback=function() ir({"ClaimGift"}) n("Gift","Claimed!") end})
+CT:CreateToggle({Name="Auto Claim Time Gifts", CurrentValue=false, Flag="AutoGifts", Callback=function(v)
+    flags.gifts = v
+    n("Gifts", v and "Auto gifts ON!" or "Auto gifts OFF!")
+    if v then loop("gifts", function() ir({"ClaimGift"}) end, 120) end
+end})
+CT:CreateButton({Name="Claim Time Gift", Callback=function() ir({"ClaimGift"}) n("Gift","Claimed!") end})
 CT:CreateSection("Disaster Bounties")
-CT:CreateToggle({Name="Auto Claim Bounties",CurrentValue=false,Flag="AutoBounties",Callback=function(v) flags.bounties=v n("Bounties",v and"Auto ON!"or"Auto OFF!") if v then loop("bounties",function() fr({"Disaster","ClaimBounties"}) fr({"Disaster","UpdateBountyClaim"}) end,45) end end})
-CT:CreateButton({Name="Claim Bounties",Callback=function() fr({"Disaster","ClaimBounties"}) n("Bounties","Claimed!") end})
-CT:CreateButton({Name="Update Bounty Claim",Callback=function() fr({"Disaster","UpdateBountyClaim"}) n("Bounties","Updated!") end})
-CT:CreateButton({Name="Reset Bounties",Callback=function() fr({"Disaster","ResetBounties"}) n("Bounties","Reset!") end})
+CT:CreateToggle({Name="Auto Claim Bounties", CurrentValue=false, Flag="AutoBounties", Callback=function(v)
+    flags.bounties = v
+    n("Bounties", v and "Auto bounties ON!" or "Auto bounties OFF!")
+    if v then loop("bounties", function() fr({"Disaster","ClaimBounties"}) fr({"Disaster","UpdateBountyClaim"}) end, 45) end
+end})
+CT:CreateButton({Name="Claim Bounties",     Callback=function() fr({"Disaster","ClaimBounties"})     n("Bounties","Claimed!")  end})
+CT:CreateButton({Name="Update Bounty Claim",Callback=function() fr({"Disaster","UpdateBountyClaim"}) n("Bounties","Updated!")  end})
+CT:CreateButton({Name="Reset Bounties",     Callback=function() fr({"Disaster","ResetBounties"})     n("Bounties","Reset!")    end})
 CT:CreateSection("Fragments")
-CT:CreateToggle({Name="Auto Update Fragments",CurrentValue=false,Flag="AutoFrags",Callback=function(v) flags.frags=v n("Frags",v and"Auto ON!"or"Auto OFF!") if v then loop("frags",function() fr({"Disaster","UpdateFragments"}) end,60) end end})
-CT:CreateButton({Name="Update Fragments",Callback=function() fr({"Disaster","UpdateFragments"}) n("Frags","Updated!") end})
+CT:CreateToggle({Name="Auto Update Fragments", CurrentValue=false, Flag="AutoFrags", Callback=function(v)
+    flags.frags = v
+    n("Fragments", v and "Auto frags ON!" or "Auto frags OFF!")
+    if v then loop("frags", function() fr({"Disaster","UpdateFragments"}) end, 60) end
+end})
+CT:CreateButton({Name="Update Fragments", Callback=function() fr({"Disaster","UpdateFragments"}) n("Frags","Updated!") end})
 CT:CreateSection("Claim All")
-CT:CreateButton({Name="CLAIM EVERYTHING",Callback=function() fr({"Daily","ClaimDaily"}) fr({"Battlepass","ClaimBattlepass"}) ir({"ClaimGift"}) fr({"Disaster","ClaimBounties"}) fr({"Disaster","UpdateBountyClaim"}) fr({"Disaster","UpdateFragments"}) ir({"ClaimEndless"}) n("Claim All","Everything claimed!",4) end})
+CT:CreateButton({Name="CLAIM EVERYTHING", Callback=function()
+    fr({"Daily","ClaimDaily"})
+    fr({"Battlepass","ClaimBattlepass"})
+    ir({"ClaimGift"})
+    fr({"Disaster","ClaimBounties"})
+    fr({"Disaster","UpdateBountyClaim"})
+    fr({"Disaster","UpdateFragments"})
+    ir({"ClaimEndless"})
+    n("Claim All","Everything claimed!",4)
+end})
 
 -- TOWER MANAGER
 TT:CreateSection("Evolution")
-TT:CreateButton({Name="Evolve Tower",Callback=function() fr({"Awakens","Evolve"}) n("Evolve","Done!") end})
-TT:CreateButton({Name="Transform Tower",Callback=function() fr({"Awakens","Transform"}) n("Transform","Done!") end})
-TT:CreateButton({Name="Convert Shards",Callback=function() fr({"Awakens","ConvertShards"}) n("Shards","Converted!") end})
-TT:CreateButton({Name="Update Material",Callback=function() fr({"Awakens","UpdateMaterial"}) n("Material","Updated!") end})
-TT:CreateSection("Selection")
-TT:CreateButton({Name="Select Tower",Callback=function() fr({"Awakens","SelectTower"}) n("Select","Selected!") end})
-TT:CreateButton({Name="Deselect Tower",Callback=function() fr({"Awakens","DeselectTower"}) n("Deselect","Deselected!") end})
-TT:CreateButton({Name="Deselect All",Callback=function() fr({"Awakens","DeselectTowers"}) n("Deselect","All deselected!") end})
-TT:CreateButton({Name="Give Sukuna",Callback=function() fr({"Awakens","GiveSukuna"}) n("Sukuna","Granted!") end})
+TT:CreateButton({Name="Evolve Tower",   Callback=function() fr({"Awakens","Evolve"})        n("Evolve","Done!")     end})
+TT:CreateButton({Name="Transform Tower",Callback=function() fr({"Awakens","Transform"})      n("Transform","Done!")  end})
+TT:CreateButton({Name="Convert Shards", Callback=function() fr({"Awakens","ConvertShards"})  n("Shards","Converted!")end})
+TT:CreateButton({Name="Update Material",Callback=function() fr({"Awakens","UpdateMaterial"}) n("Material","Updated!")end})
+TT:CreateSection("Tower Selection")
+TT:CreateButton({Name="Select Tower",  Callback=function() fr({"Awakens","SelectTower"})   n("Select","Selected!")     end})
+TT:CreateButton({Name="Deselect Tower",Callback=function() fr({"Awakens","DeselectTower"})  n("Deselect","Deselected!") end})
+TT:CreateButton({Name="Deselect All",  Callback=function() fr({"Awakens","DeselectTowers"}) n("Deselect","All clear!")  end})
+TT:CreateButton({Name="Give Sukuna",   Callback=function() fr({"Awakens","GiveSukuna"})     n("Sukuna","Granted!")      end})
 TT:CreateSection("Disaster Evolution")
-TT:CreateButton({Name="Disaster Transform",Callback=function() fr({"Disaster","Transform"}) n("Disaster","Transformed!") end})
-TT:CreateButton({Name="Disaster Give Sukuna",Callback=function() fr({"Disaster","GiveSukuna"}) n("Sukuna","Granted!") end})
-TT:CreateButton({Name="Give Toji",Callback=function() fr({"Disaster","GiveToji"}) n("Toji","Granted!") end})
-TT:CreateButton({Name="Investigate Evo",Callback=function() fr({"Disaster","InvestigateEvo"}) n("Investigate","Done!") end})
-TT:CreateButton({Name="Disaster Select Tower",Callback=function() fr({"Disaster","Evolve","SelectTower"}) n("Select","Done!") end})
-TT:CreateButton({Name="Disaster Deselect Tower",Callback=function() fr({"Disaster","Evolve","DeselectTower"}) n("Deselect","Done!") end})
+TT:CreateButton({Name="Disaster Transform",      Callback=function() fr({"Disaster","Transform"})              n("Disaster","Done!")    end})
+TT:CreateButton({Name="Disaster Give Sukuna",    Callback=function() fr({"Disaster","GiveSukuna"})             n("Sukuna","Granted!")   end})
+TT:CreateButton({Name="Give Toji",               Callback=function() fr({"Disaster","GiveToji"})               n("Toji","Granted!")     end})
+TT:CreateButton({Name="Investigate Evo",         Callback=function() fr({"Disaster","InvestigateEvo"})         n("Investigate","Done!") end})
+TT:CreateButton({Name="Disaster Select Tower",   Callback=function() fr({"Disaster","Evolve","SelectTower"})   n("Select","Done!")      end})
+TT:CreateButton({Name="Disaster Deselect Tower", Callback=function() fr({"Disaster","Evolve","DeselectTower"}) n("Deselect","Done!")    end})
 
 -- EVENTS
-ET:CreateSection("Anniversary")
-ET:CreateButton({Name="Claim Anniversary Daily",Callback=function() fr({"Anniversary","ClaimDaily"}) n("Anniversary","Daily claimed!") end})
-ET:CreateButton({Name="Anniversary Bundle",Callback=function() fr({"Anniversary","AnniversaryBundle"}) n("Bundle","Claimed!") end})
-ET:CreateButton({Name="Claim Countdown Rewards",Callback=function() fr({"Anniversary","CountdownRewards"}) n("Countdown","Claimed!") end})
-ET:CreateButton({Name="Pinata Summon",Callback=function() ir({"Anniversary","PiniataSummon"}) n("Pinata","Summoned!") end})
+ET:CreateSection("Anniversary Event")
+ET:CreateButton({Name="Claim Anniversary Daily",  Callback=function() fr({"Anniversary","ClaimDaily"})        n("Anniversary","Claimed!") end})
+ET:CreateButton({Name="Anniversary Bundle",        Callback=function() fr({"Anniversary","AnniversaryBundle"}) n("Bundle","Claimed!")      end})
+ET:CreateButton({Name="Claim Countdown Rewards",   Callback=function() fr({"Anniversary","CountdownRewards"})  n("Countdown","Claimed!")   end})
+ET:CreateButton({Name="Pinata Summon",             Callback=function() ir({"Anniversary","PiniataSummon"})     n("Pinata","Summoned!")     end})
 ET:CreateSection("Disaster Event")
-ET:CreateButton({Name="Disaster Bundle",Callback=function() fr({"Disaster","DisasterBundle"}) n("Disaster","Bundle claimed!") end})
-ET:CreateButton({Name="Complete Questline",Callback=function() fr({"Disaster","CompletedQuestline"}) n("Questline","Completed!") end})
-ET:CreateButton({Name="Finish Tutorial",Callback=function() fr({"Disaster","FinishedTutorial"}) n("Tutorial","Finished!") end})
-ET:CreateButton({Name="Claim Tutorial Reward",Callback=function() fr({"Disaster","ClaimTutorial"}) n("Tutorial","Claimed!") end})
+ET:CreateButton({Name="Disaster Bundle",     Callback=function() fr({"Disaster","DisasterBundle"})      n("Disaster","Claimed!")    end})
+ET:CreateButton({Name="Complete Questline",  Callback=function() fr({"Disaster","CompletedQuestline"})  n("Questline","Completed!") end})
+ET:CreateButton({Name="Finish Tutorial",     Callback=function() fr({"Disaster","FinishedTutorial"})    n("Tutorial","Finished!")   end})
+ET:CreateButton({Name="Claim Tutorial",      Callback=function() fr({"Disaster","ClaimTutorial"})       n("Tutorial","Claimed!")    end})
 ET:CreateSection("Cutscenes")
-ET:CreateButton({Name="Ocean Cutscene",Callback=function() fr({"Disaster","OceanCutscene"}) n("Cutscene","Playing!") end})
-ET:CreateButton({Name="Lava Cutscene",Callback=function() fr({"Disaster","LavaCutscene"}) n("Cutscene","Playing!") end})
-ET:CreateButton({Name="Key Cutscene",Callback=function() fr({"Disaster","KeyCutscene"}) n("Cutscene","Playing!") end})
-ET:CreateButton({Name="Transition On",Callback=function() fr({"Disaster","TransitionOn"}) n("Transition","ON!") end})
-ET:CreateButton({Name="Transition Off",Callback=function() fr({"Disaster","TransitionOff"}) n("Transition","OFF!") end})
+ET:CreateButton({Name="Ocean Cutscene",  Callback=function() fr({"Disaster","OceanCutscene"})  n("Cutscene","Playing!") end})
+ET:CreateButton({Name="Lava Cutscene",   Callback=function() fr({"Disaster","LavaCutscene"})   n("Cutscene","Playing!") end})
+ET:CreateButton({Name="Key Cutscene",    Callback=function() fr({"Disaster","KeyCutscene"})    n("Cutscene","Playing!") end})
+ET:CreateButton({Name="Transition On",   Callback=function() fr({"Disaster","TransitionOn"})   n("Transition","ON!")    end})
+ET:CreateButton({Name="Transition Off",  Callback=function() fr({"Disaster","TransitionOff"})  n("Transition","OFF!")   end})
 
 -- TELEPORTS
 TP:CreateSection("Teleportation")
-TP:CreateButton({Name="Teleport to AFK Zone",Callback=function() fr({"AfkTeleport"}) n("Teleport","Teleporting!") end})
-TP:CreateButton({Name="Open Casino Door",Callback=function() fr({"CasinoDoor"}) n("Casino","Door opened!") end})
-TP:CreateButton({Name="Anniversary Camera",Callback=function() fr({"AnniversaryCamera"}) n("Camera","Switched!") end})
+TP:CreateButton({Name="Teleport to AFK Zone",  Callback=function() fr({"AfkTeleport"})        n("Teleport","Teleporting!") end})
+TP:CreateButton({Name="Open Casino Door",       Callback=function() fr({"CasinoDoor"})         n("Casino","Door opened!")   end})
+TP:CreateButton({Name="Anniversary Camera",     Callback=function() fr({"AnniversaryCamera"})  n("Camera","Switched!")      end})
 
 -- STATISTICS
-SS:CreateSection("Session Stats")
-local rl=SS:CreateLabel("Runs: 0") local rwl=SS:CreateLabel("Rewards: 0") local sl=SS:CreateLabel("Summons: 0") local tl=SS:CreateLabel("Time: 0m 0s")
-spawn(function() while wait(1) do local e=tick()-stats.start rl:Set("Runs: "..stats.runs) rwl:Set("Rewards: "..stats.rewards) sl:Set("Summons: "..stats.summons) tl:Set("Time: "..math.floor(e/60).."m "..math.floor(e%60).."s") end end)
-SS:CreateButton({Name="Reset Stats",Callback=function() stats={runs=0,rewards=0,summons=0,start=tick()} n("Stats","Reset!") end})
-SS:CreateButton({Name="Detailed Stats",Callback=function() local m=math.floor((tick()-stats.start)/60) n("Stats","R/min: "..string.format("%.1f",m>0 and stats.rewards/m or 0).." | S/min: "..string.format("%.1f",m>0 and stats.summons/m or 0),6) end})
+SS:CreateSection("Session Statistics")
+local rl  = SS:CreateLabel("Runs: 0")
+local rwl = SS:CreateLabel("Rewards: 0")
+local sl  = SS:CreateLabel("Summons: 0")
+local tl  = SS:CreateLabel("Time: 0m 0s")
+spawn(function()
+    while wait(1) do
+        local e = tick() - stats.start
+        rl:Set("Runs: "    .. stats.runs)
+        rwl:Set("Rewards: " .. stats.rewards)
+        sl:Set("Summons: "  .. stats.summons)
+        tl:Set("Time: " .. math.floor(e/60) .. "m " .. math.floor(e%60) .. "s")
+    end
+end)
+SS:CreateButton({Name="Reset Stats", Callback=function() stats={runs=0,rewards=0,summons=0,start=tick()} n("Stats","Reset!") end})
+SS:CreateButton({Name="Detailed Stats", Callback=function()
+    local m = math.floor((tick()-stats.start)/60)
+    local rr = m > 0 and string.format("%.1f", stats.rewards/m) or "0.0"
+    local sr = m > 0 and string.format("%.1f", stats.summons/m) or "0.0"
+    n("Detailed Stats", "Rewards/min: "..rr.." | Summons/min: "..sr, 6)
+end})
 
 -- MISC
 MT:CreateSection("Code Redemption")
-local ci=MT:CreateInput({Name="Enter Code",PlaceholderText="Type code...",RemoveTextAfterFocusLost=false,Callback=function() end})
-MT:CreateButton({Name="Redeem Code",Callback=function() local c=ci.CurrentValue if c and c~="" then n("Code","Redeeming: "..c,3) else n("Error","Enter a code!",3) end end})
-MT:CreateButton({Name="Check Code Quest",Callback=function() ir({"CheckCodeQuest"}) n("Quest","Checked!") end})
+local codeInput = MT:CreateInput({Name="Enter Code", PlaceholderText="Type code here...", RemoveTextAfterFocusLost=false, Callback=function() end})
+MT:CreateButton({Name="Redeem Code", Callback=function()
+    local c = codeInput.CurrentValue
+    if c and c ~= "" then n("Code","Redeeming: "..c, 3) else n("Error","Enter a code first!", 3) end
+end})
+MT:CreateButton({Name="Check Code Quest",    Callback=function() ir({"CheckCodeQuest"})         n("Quest","Checked!")    end})
 MT:CreateButton({Name="Check Quest Progress",Callback=function() ir({"CheckCodeQuestProgress"}) n("Progress","Checked!") end})
 MT:CreateSection("Utilities")
-MT:CreateButton({Name="Rejoin Server",Callback=function() local r=Rem:FindFirstChild("RejoinRemote") if r then r:FireServer() else game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId,game.JobId,Pl) end n("Rejoin","Rejoining!") end})
-MT:CreateButton({Name="Check Server Time",Callback=function() n("Time",tostring(ir({"CheckTime"})),5) end})
-MT:CreateButton({Name="Copy Game Link",Callback=function() setclipboard("https://www.roblox.com/games/"..game.PlaceId) n("Clipboard","Link copied!") end})
-MT:CreateButton({Name="Send Bounties",Callback=function() fr({"Disaster","SendBounties"}) n("Bounties","Sent!") end})
+MT:CreateButton({Name="Rejoin Server", Callback=function()
+    local r = Rem:FindFirstChild("RejoinRemote")
+    if r then r:FireServer() else TS:TeleportToPlaceInstance(game.PlaceId, game.JobId, Player) end
+    n("Rejoin","Rejoining!")
+end})
+MT:CreateButton({Name="Check Server Time", Callback=function() n("Time", tostring(ir({"CheckTime"})), 5) end})
+MT:CreateButton({Name="Copy Game Link",    Callback=function() setclipboard("https://www.roblox.com/games/"..game.PlaceId) n("Clipboard","Copied!") end})
+MT:CreateButton({Name="Send Bounties",     Callback=function() fr({"Disaster","SendBounties"}) n("Bounties","Sent!") end})
 
-n("Sorcerer TD Loaded!","All features ready. Enjoy!",5)
+n("Sorcerer TD Loaded!", "All features ready. Enjoy!", 5)
 print("[STD] Premium v2.0 loaded!")
